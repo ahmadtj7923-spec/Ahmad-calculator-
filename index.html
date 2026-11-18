@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHMAD AI</title>
+<style>
+:root {
+  --bg:#0b0d12;
+  --panel:#12151d;
+  --panel2:#1b202b;
+  --text:#f5f7fb;
+  --muted:#929bad;
+  --accent:#745cff;
+  --border:#292e3b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,Arial,sans-serif;height:100vh;overflow:hidden
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:flex;height:100vh}
+.sidebar{
+  width:265px;background:#10131a;border-right:1px solid var(--border);
+  padding:18px;display:flex;flex-direction:column;gap:15px
+}
+.brand{display:flex;align-items:center;gap:11px;font-size:21px;font-weight:800}
+.logo{
+  width:39px;height:39px;border-radius:13px;
+  display:grid;place-items:center;background:linear-gradient(135deg,#987cff,#5436e8);
+  font-weight:900
+}
+.new-chat,.side-button{
+  border:1px solid var(--border);background:var(--panel2);
+  color:white;padding:12px;border-radius:11px;text-align:left
+}
+.new-chat:hover,.side-button:hover{background:#292e3d}
+.side-label{font-size:11px;color:var(--muted);margin-top:10px}
+.history{overflow-y:auto;flex:1}
+.history-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px;border-radius:9px;color:#c8cddd;font-size:13px;
+  cursor:pointer;gap:8px
+}
+.history-item:hover,.history-item.active{background:var(--panel2)}
+.history-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.delete-chat{border:0;background:none;color:#9ba2b1}
+.profile{border-top:1px solid var(--border);padding-top:14px;font-size:13px;color:#cbd0dc}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  height:65px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 22px
+}
+.topbar strong{font-size:15px}
+.top-actions{display:flex;gap:8px}
+.icon-btn{
+  background:var(--panel2);color:white;border:1px solid var(--border);
+  border-radius:9px;padding:9px 12px
+}
+.content{flex:1;overflow-y:auto;padding:25px 18px 30px}
+.welcome{
+  max-width:760px;margin:10vh auto 35px;text-align:center
+}
+.welcome h1{font-size:clamp(30px,5vw,48px);margin:15px 0}
+.gradient{
+  background:linear-gradient(90deg,#a48cff,#5b9dff);
+  color:transparent;background-clip:text
+}
+.welcome p{color:var(--muted);line-height:1.6}
+.suggestions{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;margin-top:30px;text-align:left
+}
+.suggestion{
+  background:var(--panel);border:1px solid var(--border);
+  color:white;padding:16px;border-radius:13px;text-align:left
+}
+.suggestion:hover{border-color:var(--accent)}
+.suggestion small{display:block;color:var(--muted);margin-top:7px}
+.messages{max-width:850px;margin:auto;display:flex;flex-direction:column;gap:24px}
+.message{display:flex;gap:13px;align-items:flex-start}
+.avatar{
+  width:34px;height:34px;flex-shrink:0;border-radius:11px;
+  display:grid;place-items:center;background:var(--panel2);font-size:14px
+}
+.message.user .avatar{background:#4532a4}
+.bubble{flex:1;min-width:0;line-height:1.75;overflow-wrap:anywhere}
+.message-name{font-size:12px;color:var(--muted);margin-bottom:5px}
+.message-text{white-space:pre-wrap}
+.message-text pre{
+  white-space:pre-wrap;overflow-x:auto;background:#080a0e;
+  padding:15px;border:1px solid var(--border);border-radius:10px
+}
+.message-text code{background:#252a36;padding:2px 5px;border-radius:4px}
+.message-tools{display:flex;gap:8px;margin-top:8px}
+.message-tools button{
+  background:none;border:0;color:var(--muted);font-size:12px;padding:4px
+}
+.composer-area{padding:12px 18px 17px}
+.composer{max-width:850px;margin:auto}
+.input-box{
+  display:flex;align-items:flex-end;gap:10px;
+  background:var(--panel);border:1px solid #343a4a;
+  padding:10px;border-radius:17px
+}
+.input-box:focus-within{border-color:var(--accent)}
+#prompt{
+  flex:1;background:none;border:0;outline:0;color:white;
+  resize:none;max-height:180px;min-height:28px;padding:7px
+}
+.send{
+  width:40px;height:40px;border:0;border-radius:12px;
+  background:var(--accent);color:white;font-size:18px
+}
+.send:disabled{opacity:.4;cursor:not-allowed}
+.hint{text-align:center;font-size:11px;color:var(--muted);margin-top:10px}
+.typing{color:var(--muted);font-size:13px}
+.modal{
+  display:none;position:fixed;inset:0;background:#000b;
+  align-items:center;justify-content:center;padding:15px;z-index:10
+}
+.modal.open{display:flex}
+.modal-card{
+  width:100%;max-width:480px;background:var(--panel);
+  border:1px solid var(--border);border-radius:17px;padding:22px
+}
+.modal-card h2{margin-top:0}
+.field{margin:15px 0}
+.field label{display:block;font-size:13px;color:#c7ccda;margin-bottom:7px}
+.field input{
+  width:100%;padding:12px;background:#090c12;color:white;
+  border:1px solid var(--border);border-radius:9px;outline:0
+}
+.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.primary{background:var(--accent);color:white;border:0;padding:11px 16px;border-radius:9px}
+.secondary{background:var(--panel2);color:white;border:1px solid var(--border);padding:11px 16px;border-radius:9px}
+.notice{font-size:12px;color:var(--muted);line-height:1.6}
+.mobile-menu{display:none}
+@media(max-width:700px){
+  .sidebar{
+    position:fixed;z-index:5;top:0;bottom:0;left:-280px;
+    transition:left .2s
+  }
+  .sidebar.show{left:0}
+  .mobile-menu{display:inline-block}
+  .suggestions{grid-template-columns:1fr}
+  .content{padding:18px 13px}
+  .composer-area{padding:10px}
+  .topbar{padding:0 12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">A</div> AHMAD AI</div>
+    <button class="new-chat" onclick="newChat()">＋ New chat</button>
+    <div class="side-label">YOUR CONVERSATIONS</div>
+    <div class="history" id="history"></div>
+    <button class="side-button" onclick="openSettings()">⚙ AI Settings</button>
+    <button class="side-button" onclick="clearAllChats()">🗑 Clear history</button>
+    <div class="profile">✦ AHMAD AI<br><span style="color:#8992a5">Your AI assistant</span></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="icon-btn mobile-menu" onclick="toggleSidebar()">☰</button>
+        <strong>AHMAD AI <span style="color:#8e82ff">●</span></strong>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" onclick="openSettings()">⚙ Settings</button>
+      </div>
+    </header>
+
+    <section class="content" id="content">
+      <div class="welcome" id="welcome">
+        <div class="logo" style="margin:auto;width:65px;height:65px;font-size:27px">A</div>
+        <h1>Hello, <span class="gradient">I'm AHMAD AI.</span></h1>
+        <p>Your personal AI assistant. Ask questions, learn new things, write code, brainstorm ideas and more.</p>
+        <div class="suggestions">
+          <button class="suggestion" onclick="useSuggestion('Teach me Python programming step by step')">💻 Learn programming<small>Learn coding from beginner to advanced</small></button>
+          <button class="suggestion" onclick="useSuggestion('Give me three creative business ideas')">💡 Business ideas<small>Discover new ideas and opportunities</small></button>
+          <button class="suggestion" onclick="useSuggestion('Explain science in simple English')">📚 Learn something<small>Understand difficult topics simply</small></button>
+          <button class="suggestion" onclick="useSuggestion('Help me build a website')">🌐 Build a website<small>Plan and create your next project</small></button>
+        </div>
+      </div>
+      <div class="messages" id="messages"></div>
+    </section>
+
+    <footer class="composer-area">
+      <div class="composer">
+        <div class="input-box">
+          <textarea id="prompt" rows="1" placeholder="Message AHMAD AI..." onkeydown="handleKey(event)" oninput="resizeInput()"></textarea>
+          <button class="send" id="send" onclick="sendMessage()">↑</button>
+        </div>
+        <div class="hint">AHMAD AI can make mistakes. Check important information.</div>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<div class="modal" id="settings">
+  <div class="modal-card">
+    <h2>⚙ AI Settings</h2>
+    <p class="notice">Connect an AI-compatible API to get real AI responses.</p>
+    <div class="field">
+      <label>API endpoint</label>
+      <input id="apiUrl" value="https://api.openai.com/v1/chat/completions" placeholder="https://your-server.com/v1/chat/completions">
+    </div>
+    <div class="field">
+      <label>Model name</label>
+      <input id="model" value="gpt-4.1-mini" placeholder="Enter model name">
+    </div>
+    <div class="field">
+      <label>API key (kept in memory only)</label>
+      <input id="apiKey" type="password" placeholder="Paste your API key">
+    </div>
+    <p class="notice">Security: A key used in a browser can be exposed. This setup is for personal testing only. For a public website, use a secure backend and never publish your secret key.</p>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeSettings()">Cancel</button>
+      <button class="primary" onclick="saveSettings()">Save settings</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+let apiKey = "";
+let chats = JSON.parse(localStorage.getItem("ahmad_chats") || "[]");
+let currentChat = null;
+let busy = false;
+
+function saveChats(){
+  localStorage.setItem("ahmad_chats",JSON.stringify(chats));
+}
+
+function newChat(){
+  currentChat = {
+    id: Date.now(),
+    title:"New conversation",
+    messages:[]
+  };
+  chats.unshift(currentChat);
+  saveChats();
+  render();
+  $("prompt").focus();
+  $("sidebar").classList.remove("show");
+}
+
+function selectChat(id){
+  currentChat = chats.find(c => c.id === id);
+  render();
+  $("sidebar").classList.remove("show");
+}
+
+function render(){
+  $("history").innerHTML = "";
+  chats.forEach(chat => {
+    const item = document.createElement("div");
+    item.className = "history-item" + (currentChat?.id===chat.id?" active":"");
+    const title = document.createElement("span");
+    title.textContent = "▤ " + chat.title;
+    title.onclick = () => selectChat(chat.id);
+    const del = document.createElement("button");
+    del.className = "delete-chat";
+    del.textContent = "×";
+    del.title = "Delete conversation";
+    del.onclick = e => {
+      e.stopPropagation();
+      chats = chats.filter(c => c.id !== chat.id);
+      if(currentChat?.id === chat.id) currentChat = null;
+      saveChats();
+      render();
+    };
+    item.append(title,del);
+    $("history").append(item);
+  });
+
+  const hasMessages = !!currentChat?.messages.length;
+  $("welcome").style.display = hasMessages ? "none" : "block";
+  $("messages").innerHTML = "";
+
+  if(!currentChat) return;
+  currentChat.messages.forEach((msg,index) => {
+    addMessageElement(msg,index);
+  });
+  $("content").scrollTop = $("content").scrollHeight;
+}
+
+function addMessageElement(msg,index){
+  const wrap = document.createElement("div");
+  wrap.className = "message " + msg.role;
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = msg.role === "user" ? "Y" : "A";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  const name = document.createElement("div");
+  name.className = "message-name";
+  name.textContent = msg.role === "user" ? "You" : "AHMAD AI";
+
+  const text = document.createElement("div");
+  text.className = "message-text";
+  text.textContent = msg.content;
+
+  bubble.append(name,text);
+
+  if(msg.role === "assistant"){
+    const tools = document.createElement("div");
+    tools.className = "message-tools";
+    const copy = document.createElement("button");
+    copy.textContent = "Copy";
+    copy.onclick = () => {
+      navigator.clipboard.writeText(msg.content);
+      copy.textContent = "Copied!";
+      setTimeout(()=>copy.textContent="Copy",1200);
+    };
+    tools.append(copy);
+    bubble.append(tools);
+  }
+  wrap.append(avatar,bubble);
+  $("messages").append(wrap);
+}
+
+function useSuggestion(text){
+  $("prompt").value = text;
+  sendMessage();
+}
+
+function handleKey(e){
+  if(e.key === "Enter" && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function resizeInput(){
+  const el=$("prompt");
+  el.style.height="auto";
+  el.style.height=Math.min(el.scrollHeight,180)+"px";
+}
+
+function toggleSidebar(){
+  $("sidebar").classList.toggle("show");
+}
+
+function openSettings(){
+  $("apiUrl").value=localStorage.getItem("ahmad_api_url") || "https://api.openai.com/v1/chat/completions";
+  $("model").value=localStorage.getItem("ahmad_model") || "gpt-4.1-mini";
+  $("apiKey").value=apiKey;
+  $("settings").classList.add("open");
+}
+
+function closeSettings(){
+  $("settings").classList.remove("open");
+}
+
+function saveSettings(){
+  const url=$("apiUrl").value.trim();
+  const model=$("model").value.trim();
+  if(!url || !model){
+    alert("Enter an API endpoint and model name.");
+    return;
+  }
+  localStorage.setItem("ahmad_api_url",url);
+  localStorage.setItem("ahmad_model",model);
+  apiKey=$("apiKey").value.trim();
+  closeSettings();
+  alert("Settings saved.");
+}
+
+async function sendMessage(){
+  if(busy) return;
+  const prompt=$("prompt").value.trim();
+  if(!prompt) return;
+
+  if(!currentChat){
+    currentChat={id:Date.now(),title:prompt.slice(0,35),messages:[]};
+    chats.unshift(currentChat);
+  }
+
+  if(currentChat.messages.length===0){
+    currentChat.title=prompt.slice(0,35);
+  }
+
+  currentChat.messages.push({role:"user",content:prompt});
+  $("prompt").value="";
+  resizeInput();
+  saveChats();
+  render();
+
+  const apiUrl=localStorage.getItem("ahmad_api_url") || "https://api.openai.com/v1/chat/completions";
+  const model=localStorage.getItem("ahmad_model") || "gpt-4.1-mini";
+
+  if(!apiKey){
+    currentChat.messages.push({
+      role:"assistant",
+      content:"Please open Settings and enter your API key to connect AHMAD AI to a real AI model."
+    });
+    saveChats();
+    render();
+    return;
+  }
+
+  busy=true;
+  $("send").disabled=true;
+  const loading=document.createElement("div");
+  loading.className="typing";
+  loading.id="loading";
+  loading.textContent="AHMAD AI is thinking...";
+  $("messages").append(loading);
+  $("content").scrollTop=$("content").scrollHeight;
+
+  try{
+    const response=await fetch(apiUrl,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+apiKey
+      },
+      body:JSON.stringify({
+        model:model,
+        messages:[
+          {
+            role:"system",
+            content:"You are AHMAD AI, a helpful, friendly and intelligent AI assistant. Give clear, accurate answers. Explain difficult topics simply. Never claim to have performed actions you did not perform."
+          },
+          ...currentChat.messages.map(m=>({
+            role:m.role,
+            content:m.content
+          }))
+        ],
+        temperature:0.7
+      })
+    });
+
+    const data=await response.json();
+    if(!response.ok){
+      throw new Error(data.error?.message || "API error: "+response.status);
+    }
+
+    const answer=data.choices?.[0]?.message?.content;
+    if(!answer) throw new Error("The AI returned an empty response.");
+
+    currentChat.messages.push({
+      role:"assistant",
+      content:typeof answer==="string" ? answer : JSON.stringify(answer)
+    });
+  }catch(error){
+    currentChat.messages.push({
+      role:"assistant",
+      content:"Connection error: "+error.message+"\n\nCheck your API key, endpoint, model name and internet connection."
+    });
+  }finally{
+    busy=false;
+    $("send").disabled=false;
+    saveChats();
+    render();
+    $("prompt").focus();
+  }
+}
+
+function clearAllChats(){
+  if(!confirm("Delete all your saved conversations?")) return;
+  chats=[];
+  currentChat=null;
+  saveChats();
+  render();
+}
+
+if(chats.length){
+  currentChat=chats[0];
+}
+render();
+</script>
+</body>
+</html>
